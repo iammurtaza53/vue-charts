@@ -1,15 +1,15 @@
 <template>
-  <div id="app" class="container">
+  <div id="app" >
     <div class="row">
       <!-- <Chart /> -->
     </div>
-     <div class="row">
+    <div class="row">
       <Changes />
     </div>
     <div class="row">
       <!-- <RealTimeStaticChart /> -->
     </div>
-    <div class="row custom" >
+    <div class="row custom">
       <!-- <ChartLine /> -->
     </div>
   </div>
@@ -50,7 +50,7 @@ export default {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 } */
-.custom{
+.custom {
   padding: 40px;
 }
 </style>

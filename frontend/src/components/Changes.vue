@@ -1,23 +1,49 @@
 <template>
-  <div>
-    <div class="custom">
-      <label> Select Property: </label>
-      <select @change="ChangeProperty">
-        <option value="straddle" selected>Straddle</option>
-        <option value="impliedmove">ImpliedMove</option>
-        <option value="underlying">Underlying</option>
-        <option value="strike">Strike</option>
-        <option value="quarter">Quarter</option>
-      </select>
+  <div class="container-fluid">
+    <div class="row">
+      <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+        <div class="sidebar-sticky">
+          <ul class="nav flex-column">
+            <li class="nav-item" v-for="ticker in tickers" :key="ticker">
+              <a
+                class="nav-link"
+                href="javascript:void(0)"
+                @click="tickerChanged(ticker)"
+              >
+                {{ ticker }} <span class="sr-only">(current)</span>
+              </a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+        <div class="d-flex justify-content-between">
+          <div class="btn-toolbar mb-2 mb-md-0">
+            <div class="btn-group mr-2">
+              <div class="custom">
+                <label> Select Property: </label>
+                <select @change="ChangeProperty">
+                  <option value="straddle" selected>Straddle</option>
+                  <option value="impliedmove">ImpliedMove</option>
+                  <option value="underlying">Underlying</option>
+                  <option value="strike">Strike</option>
+                  <option value="quarter">Quarter</option>
+                </select>
+              </div>
+              <apexchart
+                ref="chart"
+                width="800"
+                class="custom"
+                type="line"
+                :options="options"
+                :series="series"
+              ></apexchart>
+            </div>
+          </div>
+        </div>
+      </main>
     </div>
-    <apexchart
-      ref="chart"
-      width="800"
-      class="custom"
-      type="line"
-      :options="options"
-      :series="series"
-    ></apexchart>
   </div>
 </template>
 
@@ -38,7 +64,8 @@ export default {
       id: null,
       existingData: [],
       property: "straddle",
-
+      tickers: [],
+      ticker: "",
       options: {
         chart: {
           id: "vuechart-example",
@@ -71,13 +98,24 @@ export default {
     };
   },
   methods: {
+    getUniqueTickers() {
+      axios.get("http://127.0.0.1:5000/get-unique-tickers").then((res) => {
+        this.tickers = res.data;
+        this.ticker = res.data[0];
+        this.getAllData();
+        this.start();
+      });
+    },
     getAllData() {
-      axios.get("http://127.0.0.1:5000/get-all-changes").then((res) => {
+      axios.get("http://127.0.0.1:5000/get-all-changes/" + this.ticker).then((res) => {
         this.existingData = res.data;
         this.renderProperty();
       });
     },
-
+    tickerChanged(ticker) {
+      this.ticker = ticker;
+      this.getAllData();
+    },
     renderProperty() {
       data = [];
       this.existingData.forEach((element) => {
@@ -98,10 +136,15 @@ export default {
     },
     ChangeProperty(e) {
       this.property = e.target.value;
+      this.$refs.chart.updateSeries([
+        {
+          name: this.property,
+        },
+      ]);
       this.renderProperty();
     },
     getLatestData() {
-      axios.get("http://127.0.0.1:5000/get-last-changes").then((res) => {
+      axios.get("http://127.0.0.1:5000/get-last-changes/" + this.ticker).then((res) => {
         let result = res.data;
         if (result.changesid == this.id) {
           return;
@@ -131,8 +174,7 @@ export default {
     },
   },
   mounted: function () {
-    this.getAllData();
-    this.start();
+    this.getUniqueTickers();
   },
   beforeUnmount() {
     clearInterval(this.intervalid1);
