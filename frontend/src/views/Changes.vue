@@ -17,7 +17,8 @@
         </div>
       </nav>
 
-      <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4">
+      <main role="main" class="col-md-9 ml-sm-auto col-lg-10">
+        <h1>{{ ticker}}</h1>
         <div class="d-flex justify-content-between">
           <div class="btn-toolbar mb-2 mb-md-0">
             <div class="btn-group mr-2">
@@ -58,6 +59,7 @@ export default {
   components: {
     apexchart: VueApexCharts,
   },
+  props: ["ticker"],
   data: function () {
     return {
       intervalid1: "",
@@ -65,7 +67,6 @@ export default {
       existingData: [],
       property: "straddle",
       tickers: [],
-      ticker: "",
       options: {
         chart: {
           id: "vuechart-example",
@@ -101,7 +102,6 @@ export default {
     getUniqueTickers() {
       axios.get("http://127.0.0.1:5000/get-unique-tickers").then((res) => {
         this.tickers = res.data;
-        this.ticker = res.data[0];
         this.getAllData();
         this.start();
       });
@@ -113,8 +113,9 @@ export default {
       });
     },
     tickerChanged(ticker) {
-      this.ticker = ticker;
-      this.getAllData();
+      this.$router.push("/" + ticker).then((e) => {
+        this.getAllData();
+      });
     },
     renderProperty() {
       data = [];
@@ -182,13 +183,4 @@ export default {
 };
 </script>
 
-<style>
-.text-center {
-  align-items: center;
-  margin: 40px;
-  padding: 40px;
-}
-.custom {
-  padding: 20px;
-}
-</style>
+<style></style>
